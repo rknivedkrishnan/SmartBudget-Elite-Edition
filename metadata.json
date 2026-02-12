@@ -1,0 +1,5 @@
+{
+  "name": "SmartBudget Monthly Tracker",
+  "description": "A comprehensive monthly budget tracking application featuring income/expense management, visual data breakdowns, and AI-powered financial insights using Gemini.",
+  "requestFramePermissions": []
+}
