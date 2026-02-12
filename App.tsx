@@ -7,6 +7,8 @@ import TransactionList from './components/TransactionList';
 import TransactionModal from './components/TransactionModal';
 import SummarySection from './components/SummarySection';
 import SettingsModal from './components/SettingsModal';
+import ChartSection from './components/ChartSection';
+import TrendChart from './components/TrendChart';
 
 const generateId = () => {
   try {
@@ -20,7 +22,7 @@ const App: React.FC = () => {
   const [activeMonth, setActiveMonth] = useState(getCurrentMonth());
   const [data, setData] = useState<Record<string, MonthData>>({});
   const [settings, setSettings] = useState<AppSettings>({ 
-    currency: 'INR', 
+    currency: 'USD', 
     language: 'en-US',
     categoryBudgets: {}
   });
@@ -28,8 +30,9 @@ const App: React.FC = () => {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [modalType, setModalType] = useState<TransactionType>('income');
   const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
-  const [showSummary, setShowSummary] = useState(false);
+  const [showSummary, setShowSummary] = useState(true);
   const [isCalculating, setIsCalculating] = useState(false);
+  const [activeNav, setActiveNav] = useState('dashboard');
 
   useEffect(() => {
     const savedData = localStorage.getItem(INITIAL_STORAGE_KEY);
@@ -61,6 +64,8 @@ const App: React.FC = () => {
     return data[activeMonth] || { month: activeMonth, transactions: [] };
   }, [data, activeMonth]);
 
+  const allMonthsData = useMemo(() => Object.values(data), [data]);
+
   const incomeTransactions = useMemo(() => 
     currentMonthData.transactions.filter(t => t.type === 'income'),
     [currentMonthData]
@@ -70,10 +75,6 @@ const App: React.FC = () => {
     currentMonthData.transactions.filter(t => t.type === 'expense'),
     [currentMonthData]
   );
-
-  const availableIncomeSources = useMemo(() => {
-    return incomeTransactions.map(i => ({ id: i.id, name: i.name }));
-  }, [incomeTransactions]);
 
   const summary: BudgetSummary = useMemo(() => {
     const totalIncome = incomeTransactions.reduce((sum, t) => sum + t.amount, 0);
@@ -116,8 +117,6 @@ const App: React.FC = () => {
         }
       };
     });
-    
-    setShowSummary(false);
   };
 
   const handleDeleteTransaction = (id: string) => {
@@ -132,200 +131,241 @@ const App: React.FC = () => {
         }
       };
     });
-    setShowSummary(false);
-  };
-
-  const handleCalculate = () => {
-    setIsCalculating(true);
-    setTimeout(() => {
-      setIsCalculating(false);
-      setShowSummary(true);
-      window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
-    }, 700);
   };
 
   const handleExport = () => {
-    const report = {
-      exportDate: new Date().toISOString(),
-      activeMonth,
-      currency: settings.currency,
-      summary,
-      transactions: currentMonthData.transactions
-    };
+    const report = { exportDate: new Date().toISOString(), summary, transactions: currentMonthData.transactions };
     const blob = new Blob([JSON.stringify(report, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `SmartBudget_${activeMonth}.json`;
+    a.download = `Budget_Report_${activeMonth}.json`;
     a.click();
-    URL.revokeObjectURL(url);
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col">
+    <div className="flex h-screen bg-slate-950 text-slate-100 overflow-hidden font-sans selection:bg-indigo-500/30">
       {/* Background Ambience */}
-      <div className="fixed inset-0 pointer-events-none overflow-hidden">
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[600px] bg-indigo-600/10 blur-[120px] rounded-full"></div>
+      <div className="fixed inset-0 pointer-events-none">
+        <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-indigo-600/5 blur-[120px] rounded-full -translate-y-1/2 translate-x-1/3"></div>
+        <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-rose-600/5 blur-[120px] rounded-full translate-y-1/2 -translate-x-1/3"></div>
       </div>
 
-      {/* Website Navigation Header */}
-      <header className="sticky top-0 z-50 bg-slate-950/80 backdrop-blur-xl border-b border-white/5">
-        <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-10">
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center text-white shadow-lg shadow-indigo-600/20">
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-                </svg>
-              </div>
-              <span className="font-bold text-lg tracking-tight">SmartBudget<span className="text-indigo-500">.</span></span>
+      {/* Website Sidebar */}
+      <aside className="w-72 bg-slate-900/50 border-r border-white/5 flex flex-col z-20 backdrop-blur-xl shrink-0">
+        <div className="p-8">
+          <div className="flex items-center gap-3 mb-10">
+            <div className="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center text-white shadow-lg shadow-indigo-600/20">
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+              </svg>
             </div>
-            
-            <nav className="hidden md:flex items-center gap-8">
-              <a href="#" className="text-sm font-semibold text-white">Dashboard</a>
-              <a href="#" className="text-sm font-medium text-slate-400 hover:text-white transition-colors">Reports</a>
-              <a href="#" className="text-sm font-medium text-slate-400 hover:text-white transition-colors">Insights</a>
-              <a href="#" className="text-sm font-medium text-slate-400 hover:text-white transition-colors">Support</a>
-            </nav>
+            <span className="font-extrabold text-xl tracking-tighter">SmartBudget<span className="text-indigo-500">.</span></span>
           </div>
 
-          <div className="flex items-center gap-4">
-            <div className="h-9 flex items-center bg-white/5 border border-white/5 rounded-lg px-3 focus-within:border-indigo-500/50 transition-all">
+          <nav className="space-y-1.5">
+            {[
+              { id: 'dashboard', icon: 'M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z', label: 'Dashboard' },
+              { id: 'analytics', icon: 'M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z', label: 'Insights' },
+              { id: 'ledger', icon: 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z', label: 'Ledger' },
+            ].map(item => (
+              <button
+                key={item.id}
+                onClick={() => setActiveNav(item.id)}
+                className={`w-full flex items-center gap-4 px-4 py-3 rounded-xl transition-all duration-200 group ${
+                  activeNav === item.id 
+                    ? 'bg-indigo-600/10 text-indigo-400 font-bold' 
+                    : 'text-slate-400 hover:text-white hover:bg-white/5'
+                }`}
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d={item.icon} />
+                </svg>
+                <span className="text-sm">{item.label}</span>
+                {activeNav === item.id && <div className="ml-auto w-1.5 h-1.5 rounded-full bg-indigo-500 shadow-[0_0_8px_rgba(99,102,241,0.6)]"></div>}
+              </button>
+            ))}
+          </nav>
+        </div>
+
+        <div className="mt-auto p-8 border-t border-white/5">
+          <button 
+            onClick={() => setIsSettingsOpen(true)}
+            className="w-full flex items-center gap-4 px-4 py-3 rounded-xl text-slate-400 hover:text-white hover:bg-white/5 transition-all group mb-4"
+          >
+            <svg className="w-5 h-5 group-hover:rotate-45 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+            </svg>
+            <span className="text-sm">Settings</span>
+          </button>
+          
+          <div className="p-4 rounded-2xl bg-white/[0.02] border border-white/5">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="w-10 h-10 rounded-full bg-slate-800 border border-white/10 flex items-center justify-center font-bold text-xs">JD</div>
+              <div>
+                <p className="text-xs font-bold text-white">John Doe</p>
+                <p className="text-[10px] text-slate-500 font-medium">Enterprise Tier</p>
+              </div>
+            </div>
+            <button className="w-full py-2 bg-white/5 hover:bg-white/10 text-white rounded-lg text-[10px] font-bold uppercase tracking-widest transition-all">Sign Out</button>
+          </div>
+        </div>
+      </aside>
+
+      {/* Main Content Area */}
+      <main className="flex-1 flex flex-col min-w-0 relative z-10 overflow-hidden">
+        {/* Top bar */}
+        <header className="h-20 bg-slate-950/50 border-b border-white/5 flex items-center justify-between px-10 shrink-0">
+          <div className="flex items-center gap-8">
+            <div className="relative group">
               <input 
                 type="month" 
                 value={activeMonth}
-                onChange={(e) => {
-                  setActiveMonth(e.target.value);
-                  setShowSummary(false);
-                }}
-                className="bg-transparent text-sm font-bold focus:outline-none [color-scheme:dark]"
+                onChange={(e) => setActiveMonth(e.target.value)}
+                className="bg-white/5 border border-white/5 hover:border-white/10 rounded-xl px-4 py-2 text-sm font-bold text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/30 transition-all [color-scheme:dark]"
               />
             </div>
-            <button 
-              onClick={() => setIsSettingsOpen(true)}
-              className="p-2 text-slate-400 hover:text-white hover:bg-white/5 rounded-lg transition-all"
-            >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-              </svg>
+            <div className="h-6 w-px bg-white/5"></div>
+            <div className="flex items-center gap-2">
+               <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+               <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500">System Ready</span>
+            </div>
+          </div>
+          
+          <div className="flex items-center gap-6">
+            <button className="p-2 text-slate-400 hover:text-white transition-colors relative">
+               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>
+               <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-indigo-500 rounded-full border-2 border-slate-950"></span>
             </button>
-            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-slate-700 to-slate-900 border border-white/10 flex items-center justify-center text-xs font-bold">JD</div>
+            <div className="h-6 w-px bg-white/5"></div>
+            <button 
+              onClick={handleExport}
+              className="px-5 py-2.5 bg-indigo-600 text-white rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-indigo-500 transition-all shadow-lg shadow-indigo-600/20"
+            >
+              Generate Report
+            </button>
           </div>
-        </div>
-      </header>
+        </header>
 
-      <main className="flex-1 max-w-7xl mx-auto px-6 w-full py-10">
-        {/* Welcome Hero Section */}
-        <section className="mb-12">
-          <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
-            <div>
-              <p className="text-indigo-400 text-sm font-bold tracking-widest uppercase mb-2">Overview Terminal</p>
-              <h1 className="text-4xl font-black text-white tracking-tight">
-                {getMonthName(activeMonth)} <span className="text-slate-600">Performance</span>
-              </h1>
-            </div>
-            <div className="flex gap-4">
-               <button
-                onClick={handleCalculate}
-                disabled={isCalculating || currentMonthData.transactions.length === 0}
-                className="px-6 py-3 bg-indigo-600 text-white rounded-xl font-bold text-sm hover:bg-indigo-500 transition-all shadow-xl shadow-indigo-600/20 disabled:opacity-50 flex items-center gap-3"
-              >
-                {isCalculating ? (
-                  <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                  </svg>
-                ) : <span className="text-lg">⚡</span>}
-                Generate Analysis
-              </button>
-            </div>
-          </div>
-        </section>
+        {/* Scrollable Dashboard Section */}
+        <div className="flex-1 overflow-y-auto p-10 space-y-10 custom-scrollbar">
+          {/* Welcome Section */}
+          <section>
+            <p className="text-indigo-400 text-xs font-black uppercase tracking-[0.4em] mb-2">Workspace Overview</p>
+            <h1 className="text-4xl font-black text-white tracking-tighter">{getMonthName(activeMonth)} <span className="text-slate-700">Analytics</span></h1>
+          </section>
 
-        {/* Workspace Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-stretch mb-12">
-          <div className="flex flex-col">
-            <TransactionList 
-              title="Income Sources"
-              icon="💵"
-              accentColor="bg-emerald-600"
-              transactions={incomeTransactions}
-              onEdit={handleEditTransaction}
-              onDelete={handleDeleteTransaction}
-              onAddClick={() => handleAddTransaction('income')}
-              currency={settings.currency}
-            />
-          </div>
-
-          <div className="flex flex-col">
-            <TransactionList 
-              title="Operating Expenses"
-              icon="💸"
-              accentColor="bg-rose-600"
-              transactions={expenseTransactions}
-              onEdit={handleEditTransaction}
-              onDelete={handleDeleteTransaction}
-              onAddClick={() => handleAddTransaction('expense')}
-              incomeSources={incomeTransactions}
-              currency={settings.currency}
-              categoryBudgets={settings.categoryBudgets}
-            />
-          </div>
-        </div>
-
-        {/* Result Area */}
-        {showSummary && (
-          <div className="animate-in fade-in slide-in-from-bottom-10 duration-700">
-             <SummarySection 
-              summary={summary} 
-              transactions={currentMonthData.transactions}
-              onExport={handleExport}
-              currency={settings.currency}
-            />
-          </div>
-        )}
-      </main>
-
-      <footer className="bg-slate-900/50 border-t border-white/5 py-12 mt-auto">
-        <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-4 gap-12">
-          <div className="col-span-2">
-            <div className="flex items-center gap-2 mb-6">
-              <div className="w-6 h-6 bg-indigo-600 rounded flex items-center justify-center text-white">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-                </svg>
+          {activeNav === 'dashboard' && (
+            <div className="space-y-10 animate-in fade-in slide-in-from-bottom-6 duration-700">
+              {/* Summary Cards */}
+              <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+                 <div className="bg-white/[0.02] border border-white/5 p-6 rounded-3xl hover:bg-white/[0.04] transition-all group">
+                    <p className="text-slate-500 text-[10px] font-black uppercase tracking-widest mb-4">Total Inflow</p>
+                    <p className="text-3xl font-black text-white group-hover:text-emerald-400 transition-colors">+{summary.totalIncome.toLocaleString(settings.language, { style: 'currency', currency: settings.currency })}</p>
+                 </div>
+                 <div className="bg-white/[0.02] border border-white/5 p-6 rounded-3xl hover:bg-white/[0.04] transition-all group">
+                    <p className="text-slate-500 text-[10px] font-black uppercase tracking-widest mb-4">Total Outflow</p>
+                    <p className="text-3xl font-black text-white group-hover:text-rose-400 transition-colors">-{summary.totalExpenses.toLocaleString(settings.language, { style: 'currency', currency: settings.currency })}</p>
+                 </div>
+                 <div className="bg-white/[0.02] border border-white/5 p-6 rounded-3xl hover:bg-white/[0.04] transition-all group lg:col-span-2">
+                    <p className="text-slate-500 text-[10px] font-black uppercase tracking-widest mb-4">Net Performance</p>
+                    <div className="flex items-end justify-between">
+                      <p className={`text-4xl font-black ${summary.netSavings >= 0 ? 'text-emerald-500' : 'text-rose-500'}`}>
+                        {summary.netSavings.toLocaleString(settings.language, { style: 'currency', currency: settings.currency })}
+                      </p>
+                      <div className="px-3 py-1 bg-white/5 rounded-full border border-white/5">
+                        <span className={`text-[10px] font-black uppercase tracking-widest ${summary.savingsRate >= 0 ? 'text-emerald-500' : 'text-rose-500'}`}>
+                          {summary.savingsRate.toFixed(1)}% Efficiency
+                        </span>
+                      </div>
+                    </div>
+                 </div>
               </div>
-              <span className="font-bold tracking-tight">SmartBudget.</span>
+
+              {/* Functional Panels */}
+              <div className="grid grid-cols-1 xl:grid-cols-12 gap-8 items-stretch">
+                <div className="xl:col-span-6 h-full">
+                  <TransactionList 
+                    title="Revenue Streams"
+                    icon="💵"
+                    accentColor="bg-emerald-600"
+                    transactions={incomeTransactions}
+                    onEdit={handleEditTransaction}
+                    onDelete={handleDeleteTransaction}
+                    onAddClick={() => handleAddTransaction('income')}
+                    currency={settings.currency}
+                  />
+                </div>
+                <div className="xl:col-span-6 h-full">
+                  <TransactionList 
+                    title="Operational Burdens"
+                    icon="💸"
+                    accentColor="bg-rose-600"
+                    transactions={expenseTransactions}
+                    onEdit={handleEditTransaction}
+                    onDelete={handleDeleteTransaction}
+                    onAddClick={() => handleAddTransaction('expense')}
+                    incomeSources={incomeTransactions}
+                    currency={settings.currency}
+                    categoryBudgets={settings.categoryBudgets}
+                  />
+                </div>
+              </div>
+
+              {/* Analysis Summary */}
+              <SummarySection 
+                summary={summary} 
+                transactions={currentMonthData.transactions}
+                onExport={handleExport}
+                currency={settings.currency}
+              />
             </div>
-            <p className="text-slate-500 text-sm leading-relaxed max-w-sm">
-              Advanced financial tracking for modern professionals. Secure, fast, and driven by intelligent analytics.
-            </p>
-          </div>
-          <div>
-            <h4 className="text-white font-bold text-sm mb-6">Product</h4>
-            <ul className="space-y-4 text-slate-500 text-sm">
-              <li><a href="#" className="hover:text-indigo-400 transition-colors">Features</a></li>
-              <li><a href="#" className="hover:text-indigo-400 transition-colors">Integrations</a></li>
-              <li><a href="#" className="hover:text-indigo-400 transition-colors">API Reference</a></li>
-            </ul>
-          </div>
-          <div>
-            <h4 className="text-white font-bold text-sm mb-6">Company</h4>
-            <ul className="space-y-4 text-slate-500 text-sm">
-              <li><a href="#" className="hover:text-indigo-400 transition-colors">Privacy Policy</a></li>
-              <li><a href="#" className="hover:text-indigo-400 transition-colors">Terms of Service</a></li>
-              <li><a href="#" className="hover:text-indigo-400 transition-colors">Security</a></li>
-            </ul>
-          </div>
+          )}
+
+          {activeNav === 'analytics' && (
+            <div className="space-y-8 animate-in fade-in slide-in-from-bottom-6 duration-700">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                 <ChartSection transactions={currentMonthData.transactions} currency={settings.currency} />
+                 <TrendChart history={allMonthsData} currency={settings.currency} />
+              </div>
+            </div>
+          )}
+
+          {activeNav === 'ledger' && (
+            <div className="bg-slate-900/50 border border-white/5 rounded-3xl p-8 animate-in fade-in slide-in-from-bottom-6 duration-700">
+               <h2 className="text-xl font-black text-white mb-6 uppercase tracking-widest">Full Ledger History</h2>
+               <div className="overflow-x-auto">
+                 <table className="w-full text-left">
+                    <thead className="text-[10px] font-black uppercase text-slate-500 tracking-[0.2em] border-b border-white/5">
+                      <tr>
+                        <th className="py-4">Date</th>
+                        <th className="py-4">Record</th>
+                        <th className="py-4">Category</th>
+                        <th className="py-4 text-right">Amount</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-white/5">
+                      {currentMonthData.transactions.map(t => (
+                        <tr key={t.id} className="group hover:bg-white/[0.01] transition-colors">
+                          <td className="py-4 text-sm font-medium text-slate-400">{t.date}</td>
+                          <td className="py-4 text-sm font-bold text-white">{t.name}</td>
+                          <td className="py-4">
+                            <span className="text-[10px] font-black px-2 py-0.5 bg-white/5 rounded-lg border border-white/5 uppercase tracking-widest text-slate-500">
+                              {t.category}
+                            </span>
+                          </td>
+                          <td className={`py-4 text-right font-black ${t.type === 'income' ? 'text-emerald-500' : 'text-rose-500'}`}>
+                            {t.type === 'income' ? '+' : '-'}{t.amount.toLocaleString(settings.language, { style: 'currency', currency: settings.currency })}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                 </table>
+               </div>
+            </div>
+          )}
         </div>
-        <div className="max-w-7xl mx-auto px-6 pt-12 mt-12 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-6">
-          <p className="text-slate-600 text-xs">© 2024 SmartBudget Financial Systems. All rights reserved.</p>
-          <div className="flex gap-6 text-slate-600">
-            <svg className="w-5 h-5 cursor-pointer hover:text-white transition-colors" fill="currentColor" viewBox="0 0 24 24"><path d="M24 4.557c-.883.392-1.832.656-2.828.775 1.017-.609 1.798-1.574 2.165-2.724-.951.564-2.005.974-3.127 1.195-.897-.957-2.178-1.555-3.594-1.555-3.179 0-5.515 2.966-4.797 6.045-4.091-.205-7.719-2.165-10.148-5.144-1.29 2.213-.669 5.108 1.523 6.574-.806-.026-1.566-.247-2.229-.616-.054 2.281 1.581 4.415 3.949 4.89-.693.188-1.452.232-2.224.084.626 1.956 2.444 3.379 4.6 3.419-2.07 1.623-4.678 2.348-7.29 2.04 2.179 1.397 4.768 2.212 7.548 2.212 9.142 0 14.307-7.721 13.995-14.646.962-.695 1.797-1.562 2.457-2.549z"/></svg>
-            <svg className="w-5 h-5 cursor-pointer hover:text-white transition-colors" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
-          </div>
-        </div>
-      </footer>
+      </main>
 
       <TransactionModal 
         isOpen={isModalOpen}
@@ -333,7 +373,7 @@ const App: React.FC = () => {
         type={modalType}
         editingTransaction={editingTransaction}
         onSave={handleSaveTransaction}
-        availableIncomeSources={availableIncomeSources}
+        availableIncomeSources={incomeTransactions.map(i => ({ id: i.id, name: i.name }))}
       />
 
       <SettingsModal 

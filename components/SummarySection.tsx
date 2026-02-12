@@ -29,117 +29,95 @@ const SummarySection: React.FC<SummarySectionProps> = ({ summary, transactions, 
   const isPositive = summary.netSavings >= 0;
   const expenseRatio = summary.totalIncome > 0 ? summary.totalExpenses / summary.totalIncome : 0;
   
+  // Status Logic: Healthy (<90%), Warning (90-100%), Loss (>100%)
   const isWarning = expenseRatio > 0.9 && expenseRatio <= 1.0;
   const isLoss = expenseRatio > 1.0;
 
   return (
-    <div className="bg-slate-900 border border-white/5 rounded-3xl overflow-hidden shadow-2xl">
-      <div className="p-8 border-b border-white/5 bg-white/[0.01] flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
-        <div>
-          <h2 className="text-xl font-bold text-white tracking-tight">Intelligence Report</h2>
-          <p className="text-slate-500 text-xs font-medium mt-1">Aggregated results for the current billing cycle</p>
-        </div>
-        <div className="flex gap-3">
-           <button 
+    <div className="bg-slate-900 border border-white/5 rounded-[2.5rem] overflow-hidden shadow-2xl relative">
+      {/* Visual Status Indicator Strip */}
+      <div className={`h-1.5 w-full ${
+        isLoss ? 'bg-rose-500' : isWarning ? 'bg-orange-500' : 'bg-emerald-500'
+      }`}></div>
+
+      <div className="p-10">
+        <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-10 gap-6">
+          <div>
+            <h2 className="text-2xl font-black text-white tracking-tighter uppercase">Intelligence Advisory</h2>
+            <p className="text-slate-500 text-[10px] font-bold uppercase tracking-[0.2em] mt-1">Automated Neural Analysis</p>
+          </div>
+          <button 
             onClick={handleGetInsights}
             disabled={isAiLoading || transactions.length === 0}
-            className="px-5 py-2.5 bg-indigo-600 text-white rounded-xl font-bold text-xs uppercase tracking-wider hover:bg-indigo-500 transition-all disabled:opacity-50 flex items-center gap-2"
+            className="flex items-center gap-3 px-8 py-4 bg-indigo-600 text-white rounded-2xl font-black text-xs uppercase tracking-[0.2em] hover:bg-indigo-500 transition-all disabled:opacity-50 shadow-xl shadow-indigo-600/20"
           >
             {isAiLoading ? (
-              <svg className="animate-spin h-3.5 w-3.5" fill="none" viewBox="0 0 24 24">
+              <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
               </svg>
-            ) : <span>✨</span>}
-            AI Synthesis
-          </button>
-          <button 
-            onClick={onExport}
-            className="px-5 py-2.5 bg-white/5 text-slate-300 rounded-xl font-bold text-xs uppercase tracking-wider hover:bg-white/10 transition-all border border-white/5"
-          >
-            Export.JSON
+            ) : <span className="text-lg">✨</span>}
+            Synthesize Insights
           </button>
         </div>
-      </div>
 
-      <div className="p-8">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-10">
-          <div className="bg-white/[0.02] border border-white/5 p-6 rounded-2xl group transition-all hover:bg-white/[0.04]">
-            <p className="text-slate-500 font-bold uppercase tracking-widest text-[10px] mb-2">Cycle Inflow</p>
-            <p className="text-3xl font-black text-emerald-500">{formatCurrency(summary.totalIncome, currency)}</p>
-          </div>
-
-          <div className="bg-white/[0.02] border border-white/5 p-6 rounded-2xl group transition-all hover:bg-white/[0.04]">
-            <p className="text-slate-500 font-bold uppercase tracking-widest text-[10px] mb-2">Cycle Outflow</p>
-            <p className="text-3xl font-black text-rose-500">{formatCurrency(summary.totalExpenses, currency)}</p>
-          </div>
-
-          <div className={`
-            p-6 rounded-2xl border transition-all duration-500
-            ${isLoss 
-              ? 'bg-rose-500/10 border-rose-500/50 scale-y-90 animate-breath-red'
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-10">
+          <div className={`p-8 rounded-3xl border transition-all duration-700 flex flex-col items-center text-center ${
+            isLoss 
+              ? 'bg-rose-500/10 border-rose-500/50 scale-y-95 animate-breath-red shadow-[0_0_40px_rgba(239,68,68,0.2)]'
               : isWarning
-                ? 'bg-orange-500/10 border-orange-500/50 scale-y-90 animate-breath' 
-                : 'bg-indigo-500/5 border-indigo-500/20'
-            }
-          `}>
-            <p className={`font-bold uppercase tracking-widest text-[10px] mb-2 ${
-              isLoss ? 'text-rose-500' : isWarning ? 'text-orange-500' : 'text-indigo-400'
+                ? 'bg-orange-500/10 border-orange-500/50 scale-y-95 animate-breath shadow-[0_0_40px_rgba(249,115,22,0.2)]' 
+                : 'bg-white/[0.02] border-white/5'
+          }`}>
+            <p className={`text-[10px] font-black uppercase tracking-[0.2em] mb-4 ${
+              isLoss ? 'text-rose-500' : isWarning ? 'text-orange-500' : 'text-slate-500'
             }`}>
-              {isLoss ? 'Liquid Deficit' : isWarning ? 'Margin Alert' : 'Net Surplus'}
+              {isLoss ? 'Liquid Deficit' : isWarning ? 'Margin Critical' : 'Net Retention'}
             </p>
-            <p className={`text-3xl font-black ${
-              isLoss ? 'text-rose-400' : isWarning ? 'text-orange-400' : 'text-indigo-400'
+            <p className={`text-4xl font-black mb-2 ${
+              isLoss ? 'text-rose-400' : isWarning ? 'text-orange-400' : 'text-emerald-500'
             }`}>
               {formatCurrency(summary.netSavings, currency)}
             </p>
-            <div className={`mt-3 inline-block px-2 py-0.5 rounded-lg text-[9px] font-black uppercase tracking-widest ${
-               isLoss ? 'bg-rose-500/20 text-rose-500' : isWarning ? 'bg-orange-500/20 text-orange-500' : 'bg-emerald-500/10 text-emerald-500'
+            <div className={`text-[9px] font-black px-3 py-1 rounded-full uppercase tracking-widest ${
+              isLoss ? 'bg-rose-500/20 text-rose-500' : isWarning ? 'bg-orange-500/20 text-orange-500' : 'bg-emerald-500/10 text-emerald-500'
             }`}>
-               {summary.savingsRate.toFixed(1)}% Ratio
+              Efficiency: {summary.savingsRate.toFixed(1)}%
             </div>
           </div>
-        </div>
 
-        <div className={`relative p-8 rounded-2xl border overflow-hidden transition-all duration-700 mb-10 ${
-          isLoss
-          ? 'bg-rose-950/30 border-rose-500/20'
-          : isWarning
-            ? 'bg-orange-950/30 border-orange-500/20'
-            : 'bg-emerald-950/30 border-emerald-500/20'
-        }`}>
-          <div className="flex items-center gap-6">
-            <div className={`w-14 h-14 rounded-2xl flex items-center justify-center text-2xl shadow-lg shrink-0 ${
-              isLoss ? 'bg-rose-600 text-white' : isWarning ? 'bg-orange-600 text-white' : 'bg-emerald-600 text-white'
-            }`}>
-              {isLoss ? '📉' : isWarning ? '⚠️' : '💎'}
-            </div>
-            <div>
-              <h3 className="text-lg font-bold text-white mb-1">
-                {isLoss ? 'Critical Disruption Detected' : isWarning ? 'Financial Compression Underway' : 'Growth Trajectory Optimal'}
-              </h3>
-              <p className="text-slate-400 text-sm leading-relaxed max-w-2xl">
-                {isLoss
-                  ? `Your expenditures have exceeded total inflows by ${formatCurrency(Math.abs(summary.netSavings), currency)}. This represents a critical liquidity risk. Immediate cost-cutting measures are required to stabilize the cycle.`
-                  : isWarning
-                    ? `Expenses are currently consuming over 90% of your incoming capital. Your margin of error is extremely thin. Review discretionary spending to reclaim operational freedom.`
-                    : `You have successfully retained ${formatCurrency(summary.netSavings, currency)} this cycle. Your savings rate of ${summary.savingsRate.toFixed(1)}% is within professional benchmarks for wealth accumulation.`}
-              </p>
-            </div>
+          <div className="lg:col-span-2 p-8 bg-white/[0.01] border border-white/5 rounded-3xl flex flex-col md:flex-row gap-8 items-center">
+             <div className={`w-20 h-20 rounded-2xl flex items-center justify-center text-3xl shadow-2xl shrink-0 ${
+               isLoss ? 'bg-rose-600' : isWarning ? 'bg-orange-600' : 'bg-emerald-600'
+             }`}>
+               {isLoss ? '📉' : isWarning ? '⚠️' : '💎'}
+             </div>
+             <div>
+               <h4 className="text-xl font-bold text-white mb-2">
+                 {isLoss ? 'Immediate Liquidity Intervention' : isWarning ? 'Operational Compression Detected' : 'Optimal Growth Trajectory'}
+               </h4>
+               <p className="text-slate-400 text-sm leading-relaxed">
+                 {isLoss
+                   ? `You have exceeded your inflow limits by ${formatCurrency(Math.abs(summary.netSavings), currency)}. This deficit threatens short-term capital stability.`
+                   : isWarning
+                     ? `Expenses are consuming 90%+ of revenue. Your margin is dangerously low. Overhead reduction is advised to prevent deficit.`
+                     : `Retention is optimal. Your current savings rate is within high-performance benchmarks for financial acceleration.`}
+               </p>
+             </div>
           </div>
         </div>
 
         {aiInsights && (
-          <div className="bg-white/[0.01] border border-white/5 rounded-2xl p-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-            <div className="flex items-center gap-3 mb-6">
-              <div className="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center text-sm shadow-indigo-600/20">🤖</div>
-              <h4 className="font-bold text-white text-sm uppercase tracking-widest">Neural Advisory Dashboard</h4>
+          <div className="bg-white/[0.02] border border-white/5 rounded-3xl p-10 animate-in fade-in zoom-in duration-500 shadow-2xl">
+            <div className="flex items-center gap-4 mb-8">
+              <div className="w-10 h-10 rounded-xl bg-indigo-600 flex items-center justify-center text-xl shadow-indigo-600/20">🤖</div>
+              <h4 className="font-black text-white text-sm uppercase tracking-[0.3em]">Neural Advisory Dashboard</h4>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
               {aiInsights.split('\n').filter(l => l.trim()).map((line, i) => (
-                <div key={i} className="p-5 bg-white/[0.02] rounded-xl border border-white/5">
-                  <span className="text-indigo-500 font-black text-xs block mb-2">0{i+1}</span>
-                  <p className="text-slate-400 text-sm leading-relaxed italic">{line.replace(/^-\s*/, '').replace(/^\d+\.\s*/, '')}</p>
+                <div key={i} className="p-6 bg-white/[0.02] rounded-2xl border border-white/5 hover:border-indigo-500/30 transition-colors group">
+                  <span className="text-indigo-500 font-black text-xs block mb-3 group-hover:scale-110 transition-transform origin-left">0{i+1}</span>
+                  <p className="text-slate-400 text-sm leading-relaxed italic font-medium">{line.replace(/^-\s*/, '').replace(/^\d+\.\s*/, '')}</p>
                 </div>
               ))}
             </div>
