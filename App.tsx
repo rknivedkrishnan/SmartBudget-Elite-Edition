@@ -162,28 +162,35 @@ const App: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen relative overflow-x-hidden pb-20">
-      {/* Glow Blobs */}
-      <div className="fixed top-[-10%] left-[-10%] w-[50%] h-[50%] bg-indigo-600/10 blur-[150px] rounded-full animate-blob pointer-events-none z-0"></div>
-      <div className="fixed bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-emerald-600/10 blur-[150px] rounded-full animate-blob pointer-events-none z-0" style={{ animationDelay: '-5s' }}></div>
-      <div className="fixed top-[40%] left-[30%] w-[30%] h-[30%] bg-purple-600/5 blur-[120px] rounded-full animate-blob pointer-events-none z-0" style={{ animationDelay: '-10s' }}></div>
+    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col">
+      {/* Background Ambience */}
+      <div className="fixed inset-0 pointer-events-none overflow-hidden">
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[600px] bg-indigo-600/10 blur-[120px] rounded-full"></div>
+      </div>
 
-      <header className="bg-slate-950/60 border-b border-white/5 sticky top-0 z-40 backdrop-blur-xl">
-        <div className="max-w-6xl mx-auto px-4 h-20 flex justify-between items-center">
-          <div className="flex items-center gap-4">
-            <div className="w-11 h-11 bg-gradient-to-br from-indigo-500 to-indigo-700 rounded-2xl flex items-center justify-center text-white text-xl shadow-[0_0_20px_rgba(79,70,229,0.3)]">
-              💰
+      {/* Website Navigation Header */}
+      <header className="sticky top-0 z-50 bg-slate-950/80 backdrop-blur-xl border-b border-white/5">
+        <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
+          <div className="flex items-center gap-10">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center text-white shadow-lg shadow-indigo-600/20">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                </svg>
+              </div>
+              <span className="font-bold text-lg tracking-tight">SmartBudget<span className="text-indigo-500">.</span></span>
             </div>
-            <div className="flex flex-col">
-              <h1 className="text-xl font-black bg-clip-text text-transparent bg-gradient-to-r from-white to-slate-400 tracking-tighter leading-tight">
-                SmartBudget
-              </h1>
-              <span className="text-[10px] text-indigo-400 font-black uppercase tracking-[0.2em]">Elite Edition</span>
-            </div>
+            
+            <nav className="hidden md:flex items-center gap-8">
+              <a href="#" className="text-sm font-semibold text-white">Dashboard</a>
+              <a href="#" className="text-sm font-medium text-slate-400 hover:text-white transition-colors">Reports</a>
+              <a href="#" className="text-sm font-medium text-slate-400 hover:text-white transition-colors">Insights</a>
+              <a href="#" className="text-sm font-medium text-slate-400 hover:text-white transition-colors">Support</a>
+            </nav>
           </div>
-          
-          <div className="flex items-center gap-3">
-             <div className="flex items-center bg-white/5 hover:bg-white/10 rounded-full px-4 py-2 border border-white/5 transition-all shadow-inner group">
+
+          <div className="flex items-center gap-4">
+            <div className="h-9 flex items-center bg-white/5 border border-white/5 rounded-lg px-3 focus-within:border-indigo-500/50 transition-all">
               <input 
                 type="month" 
                 value={activeMonth}
@@ -191,41 +198,57 @@ const App: React.FC = () => {
                   setActiveMonth(e.target.value);
                   setShowSummary(false);
                 }}
-                className="bg-transparent text-slate-100 font-bold focus:outline-none [color-scheme:dark] text-sm cursor-pointer"
+                className="bg-transparent text-sm font-bold focus:outline-none [color-scheme:dark]"
               />
             </div>
             <button 
               onClick={() => setIsSettingsOpen(true)}
-              className="p-3 bg-white/5 hover:bg-white/10 rounded-full border border-white/5 transition-all text-slate-400 hover:text-white active:scale-95"
-              title="Settings"
+              className="p-2 text-slate-400 hover:text-white hover:bg-white/5 rounded-lg transition-all"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
               </svg>
             </button>
+            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-slate-700 to-slate-900 border border-white/10 flex items-center justify-center text-xs font-bold">JD</div>
           </div>
         </div>
       </header>
 
-      <main className="max-w-6xl mx-auto px-4 py-12 relative z-10">
-        <div className="mb-16 flex flex-col items-center text-center">
-          <h2 className="text-6xl font-black text-white mb-3 tracking-tighter drop-shadow-lg">
-            {getMonthName(activeMonth)}
-          </h2>
-          <div className="flex items-center gap-4 text-slate-500 font-black uppercase text-[10px] tracking-[0.4em]">
-            <span className="w-10 h-[1px] bg-white/10"></span>
-            Financial Command Center
-            <span className="w-10 h-[1px] bg-white/10"></span>
+      <main className="flex-1 max-w-7xl mx-auto px-6 w-full py-10">
+        {/* Welcome Hero Section */}
+        <section className="mb-12">
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+            <div>
+              <p className="text-indigo-400 text-sm font-bold tracking-widest uppercase mb-2">Overview Terminal</p>
+              <h1 className="text-4xl font-black text-white tracking-tight">
+                {getMonthName(activeMonth)} <span className="text-slate-600">Performance</span>
+              </h1>
+            </div>
+            <div className="flex gap-4">
+               <button
+                onClick={handleCalculate}
+                disabled={isCalculating || currentMonthData.transactions.length === 0}
+                className="px-6 py-3 bg-indigo-600 text-white rounded-xl font-bold text-sm hover:bg-indigo-500 transition-all shadow-xl shadow-indigo-600/20 disabled:opacity-50 flex items-center gap-3"
+              >
+                {isCalculating ? (
+                  <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                ) : <span className="text-lg">⚡</span>}
+                Generate Analysis
+              </button>
+            </div>
           </div>
-        </div>
+        </section>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-          <div className="h-full">
+        {/* Workspace Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-stretch mb-12">
+          <div className="flex flex-col">
             <TransactionList 
-              title="Cash Inflow"
+              title="Income Sources"
               icon="💵"
-              accentColor="bg-emerald-500"
+              accentColor="bg-emerald-600"
               transactions={incomeTransactions}
               onEdit={handleEditTransaction}
               onDelete={handleDeleteTransaction}
@@ -234,11 +257,11 @@ const App: React.FC = () => {
             />
           </div>
 
-          <div className="h-full">
+          <div className="flex flex-col">
             <TransactionList 
-              title="Cash Outflow"
+              title="Operating Expenses"
               icon="💸"
-              accentColor="bg-rose-500"
+              accentColor="bg-rose-600"
               transactions={expenseTransactions}
               onEdit={handleEditTransaction}
               onDelete={handleDeleteTransaction}
@@ -250,37 +273,9 @@ const App: React.FC = () => {
           </div>
         </div>
 
-        <div className="flex justify-center mb-24 mt-12">
-          <button
-            onClick={handleCalculate}
-            disabled={isCalculating || currentMonthData.transactions.length === 0}
-            className={`
-              relative overflow-hidden group px-16 py-7 rounded-3xl font-black text-lg 
-              transition-all duration-500 transform hover:scale-[1.03] active:scale-[0.98]
-              shadow-2xl disabled:opacity-40 disabled:cursor-not-allowed
-              ${showSummary 
-                ? 'bg-white text-slate-900 shadow-[0_0_40px_rgba(255,255,255,0.1)]' 
-                : 'bg-indigo-600 text-white shadow-[0_0_40px_rgba(79,70,229,0.25)] hover:shadow-[0_0_60px_rgba(79,70,229,0.4)]'
-              }
-            `}
-          >
-            <div className="flex items-center gap-4 relative z-10">
-              {isCalculating ? (
-                 <svg className="animate-spin h-6 w-6" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                 </svg>
-              ) : (
-                <span className="text-2xl">{showSummary ? '⚡' : '🔮'}</span>
-              )}
-              {showSummary ? 'REFRESH INSIGHTS' : 'REVEAL REPORT'}
-            </div>
-            <div className="absolute inset-0 bg-white/10 translate-y-full group-hover:translate-y-0 transition-transform duration-500" />
-          </button>
-        </div>
-
+        {/* Result Area */}
         {showSummary && (
-          <div className="animate-in fade-in zoom-in slide-in-from-bottom-12 duration-1000">
+          <div className="animate-in fade-in slide-in-from-bottom-10 duration-700">
              <SummarySection 
               summary={summary} 
               transactions={currentMonthData.transactions}
@@ -291,10 +286,44 @@ const App: React.FC = () => {
         )}
       </main>
 
-      <footer className="mt-20 py-16 border-t border-white/5 text-center">
-        <div className="max-w-6xl mx-auto px-4 opacity-30">
-          <p className="font-black tracking-[0.5em] uppercase text-[9px]">Advanced Financial Synthesis • v2.5.0</p>
-          <p className="text-[8px] mt-2 font-bold tracking-[0.2em] uppercase">Built for high performance assets</p>
+      <footer className="bg-slate-900/50 border-t border-white/5 py-12 mt-auto">
+        <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-4 gap-12">
+          <div className="col-span-2">
+            <div className="flex items-center gap-2 mb-6">
+              <div className="w-6 h-6 bg-indigo-600 rounded flex items-center justify-center text-white">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                </svg>
+              </div>
+              <span className="font-bold tracking-tight">SmartBudget.</span>
+            </div>
+            <p className="text-slate-500 text-sm leading-relaxed max-w-sm">
+              Advanced financial tracking for modern professionals. Secure, fast, and driven by intelligent analytics.
+            </p>
+          </div>
+          <div>
+            <h4 className="text-white font-bold text-sm mb-6">Product</h4>
+            <ul className="space-y-4 text-slate-500 text-sm">
+              <li><a href="#" className="hover:text-indigo-400 transition-colors">Features</a></li>
+              <li><a href="#" className="hover:text-indigo-400 transition-colors">Integrations</a></li>
+              <li><a href="#" className="hover:text-indigo-400 transition-colors">API Reference</a></li>
+            </ul>
+          </div>
+          <div>
+            <h4 className="text-white font-bold text-sm mb-6">Company</h4>
+            <ul className="space-y-4 text-slate-500 text-sm">
+              <li><a href="#" className="hover:text-indigo-400 transition-colors">Privacy Policy</a></li>
+              <li><a href="#" className="hover:text-indigo-400 transition-colors">Terms of Service</a></li>
+              <li><a href="#" className="hover:text-indigo-400 transition-colors">Security</a></li>
+            </ul>
+          </div>
+        </div>
+        <div className="max-w-7xl mx-auto px-6 pt-12 mt-12 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-6">
+          <p className="text-slate-600 text-xs">© 2024 SmartBudget Financial Systems. All rights reserved.</p>
+          <div className="flex gap-6 text-slate-600">
+            <svg className="w-5 h-5 cursor-pointer hover:text-white transition-colors" fill="currentColor" viewBox="0 0 24 24"><path d="M24 4.557c-.883.392-1.832.656-2.828.775 1.017-.609 1.798-1.574 2.165-2.724-.951.564-2.005.974-3.127 1.195-.897-.957-2.178-1.555-3.594-1.555-3.179 0-5.515 2.966-4.797 6.045-4.091-.205-7.719-2.165-10.148-5.144-1.29 2.213-.669 5.108 1.523 6.574-.806-.026-1.566-.247-2.229-.616-.054 2.281 1.581 4.415 3.949 4.89-.693.188-1.452.232-2.224.084.626 1.956 2.444 3.379 4.6 3.419-2.07 1.623-4.678 2.348-7.29 2.04 2.179 1.397 4.768 2.212 7.548 2.212 9.142 0 14.307-7.721 13.995-14.646.962-.695 1.797-1.562 2.457-2.549z"/></svg>
+            <svg className="w-5 h-5 cursor-pointer hover:text-white transition-colors" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
+          </div>
         </div>
       </footer>
 
